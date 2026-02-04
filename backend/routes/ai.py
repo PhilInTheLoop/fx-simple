@@ -102,52 +102,47 @@ def build_analysis_prompt(
     long_focus_text = f"\n\nAdditional long-term focus: {long_term_focus}" if long_term_focus else ""
 
     if for_web_search:
-        intro = f"""You are a professional FX analyst. Analyze the {context['pair']} currency pair based on the web research provided below."""
+        intro = f"""You are a financial research assistant. Summarize the latest research and analyst opinions on the {context['pair']} currency pair based on the web research provided below."""
         research_instructions = f"""
-Base your analysis on the web research findings, focusing on:
+Summarize what analysts and financial institutions are saying about this pair, including:
 {sources_text}
 
-IMPORTANT: Include analyst sentiment, specific price targets, and forecasts from the research."""
+IMPORTANT: Report what the research says - do not add your own analysis. Include specific price targets, forecasts, and sentiment from the sources."""
         source_instructions = """
 Requirements:
 - Use REAL sources from the web research - do not make up URLs
-- Cite specific price targets or levels when available
-- Mention specific analysts or institutions when referenced"""
+- Quote or paraphrase specific analyst views
+- Mention the institution or analyst name when available
+- Report consensus views and any contrarian opinions"""
     else:
-        intro = f"""You are a professional FX analyst. Analyze the {context['pair']} currency pair."""
+        intro = f"""You are a financial research assistant. Summarize typical market views and research perspectives on the {context['pair']} currency pair."""
         research_instructions = f"""
-Base your analysis on:
+Summarize common research perspectives on this pair, considering:
 {sources_text}"""
         source_instructions = """
 Requirements:
-- Provide relevant financial news sources (Reuters, Bloomberg, FXStreet, etc.)"""
+- Reference typical financial news sources (Reuters, Bloomberg, FXStreet, etc.)
+- Present balanced market perspectives"""
 
     return f"""{intro}
-
-Current Market Data:
-- Currency Pair: {context['pair']}
-- Current Rate: {context['current_rate']}
-- {context['pair'].split('/')[0]} Interest Rate: {context['base_interest_rate']}%
-- {context['pair'].split('/')[1]} Interest Rate: {context['quote_interest_rate']}%
-- Interest Rate Differential: {context['interest_differential']:.2f}%
 
 Analysis Style: {style_text}
 Detail Level: {depth_text}
 {research_instructions}{short_focus_text}{long_focus_text}
 
-Provide analysis in this JSON format:
+Provide the research summary in this JSON format:
 {{
     "shortTerm": {{
         "trend": "Bullish" | "Bearish" | "Neutral",
-        "summary": "1-2 sentence short-term (1-7 day) outlook",
-        "details": "Detailed paragraph with reasoning",
-        "sources": [{{"name": "Source", "url": "https://..."}}]
+        "summary": "1-2 sentence summary of analyst consensus for short-term (1-7 days)",
+        "details": "Detailed paragraph summarizing what analysts and research say about the short-term outlook",
+        "sources": [{{"name": "Source/Analyst name", "url": "https://..."}}]
     }},
     "longTerm": {{
         "trend": "Bullish" | "Bearish" | "Neutral",
-        "summary": "1-2 sentence mid/long-term (1-3 month) outlook",
-        "details": "Detailed paragraph with reasoning",
-        "sources": [{{"name": "Source", "url": "https://..."}}]
+        "summary": "1-2 sentence summary of analyst consensus for mid/long-term (1-3 months)",
+        "details": "Detailed paragraph summarizing what analysts and research say about the longer-term outlook",
+        "sources": [{{"name": "Source/Analyst name", "url": "https://..."}}]
     }}
 }}
 {source_instructions}

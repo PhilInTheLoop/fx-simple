@@ -43,16 +43,48 @@
 
         <!-- Main Content -->
         <main id="main-content" class="hidden">
-            <!-- Current Rate with Daily Change -->
+            <!-- Current Rate Display - Enhanced -->
             <section class="rate-display">
-                <div class="rate-info">
-                    <span class="rate-value" id="current-rate">--</span>
-                    <div class="daily-change">
-                        <span class="change-value" id="daily-absolute">--</span>
-                        <span class="change-value" id="daily-percent">--</span>
+                <div class="rate-main">
+                    <div class="rate-header-row">
+                        <div class="rate-pair">
+                            <span class="currency-from" id="currency-from">EUR</span>
+                            <span class="currency-arrow">→</span>
+                            <span class="currency-to" id="currency-to">USD</span>
+                        </div>
+                        <span class="rate-source" id="rate-source">via Frankfurter (ECB)</span>
+                    </div>
+                    <div class="rate-value-row">
+                        <span class="rate-value" id="current-rate">--</span>
+                        <div class="daily-change">
+                            <span class="change-value" id="daily-absolute">--</span>
+                            <span class="change-value" id="daily-percent">--</span>
+                        </div>
+                    </div>
+                    <div class="rate-description" id="rate-description">1 EUR = -- USD</div>
+                </div>
+                <div class="rate-details">
+                    <div class="rate-detail-row">
+                        <span class="detail-label">Inverse</span>
+                        <span class="detail-value" id="inverse-rate">--</span>
+                    </div>
+                    <div class="rate-detail-row">
+                        <span class="detail-label">Updated</span>
+                        <span class="detail-value" id="rate-timestamp">--</span>
+                    </div>
+                    <div class="official-rates-section" id="official-rates-section">
+                        <div class="official-rate-row" id="ecb-row">
+                            <span class="official-label">ECB</span>
+                            <span class="official-rate-value" id="ecb-rate">--</span>
+                            <span class="preferred-badge" id="ecb-preferred">preferred</span>
+                        </div>
+                        <div class="official-rate-row fred" id="fred-row">
+                            <span class="official-label">FRED</span>
+                            <span class="official-rate-value" id="fred-rate">--</span>
+                            <span class="preferred-badge" id="fred-preferred">preferred</span>
+                        </div>
                     </div>
                 </div>
-                <span class="rate-timestamp" id="rate-timestamp">--</span>
             </section>
 
             <!-- Pair Exposure (prominent, collapsible) -->
@@ -70,7 +102,10 @@
             <!-- Historical Chart -->
             <section class="chart-card">
                 <div class="card-header">
-                    <span>Historical</span>
+                    <div class="chart-title-row">
+                        <span>Historical</span>
+                        <span class="chart-source" id="chart-source">ECB</span>
+                    </div>
                     <select id="chart-period" class="period-select">
                         <option value="30">1 Month</option>
                         <option value="90" selected>3 Months</option>
@@ -78,13 +113,9 @@
                     </select>
                 </div>
                 <div class="change-values">
-                    <div class="change-item">
-                        <span class="change-label" id="period-label">3M Change</span>
-                        <span class="change-value" id="period-absolute">--</span>
-                    </div>
-                    <div class="change-item">
-                        <span class="change-value" id="period-percent">--</span>
-                    </div>
+                    <span class="change-label" id="period-label">3M Change</span>
+                    <span class="change-value" id="period-absolute">--</span>
+                    <span class="change-value" id="period-percent">--</span>
                 </div>
                 <div class="chart-container large">
                     <canvas id="history-chart"></canvas>
@@ -132,20 +163,26 @@
 
                 <!-- Total Currency Exposure -->
                 <div class="exposure-card">
-                    <div class="card-header">Total Currency Exposure</div>
+                    <div class="card-header">Total Currency Exposure <span class="exposure-chf-note">(in CHF)</span></div>
                     <div class="exposure-row">
                         <div class="exposure-item">
                             <div class="exposure-currency" id="base-exp-name">--</div>
                             <div class="exposure-value" id="base-exposure">--</div>
-                            <div class="exposure-bar-container">
-                                <div class="exposure-bar" id="base-exp-bar"></div>
+                            <div class="exposure-percent-row">
+                                <div class="exposure-bar-container">
+                                    <div class="exposure-bar" id="base-exp-bar"></div>
+                                </div>
+                                <span class="exposure-percent" id="base-exp-percent">--</span>
                             </div>
                         </div>
                         <div class="exposure-item">
                             <div class="exposure-currency" id="quote-exp-name">--</div>
                             <div class="exposure-value" id="quote-exposure">--</div>
-                            <div class="exposure-bar-container">
-                                <div class="exposure-bar" id="quote-exp-bar"></div>
+                            <div class="exposure-percent-row">
+                                <div class="exposure-bar-container">
+                                    <div class="exposure-bar" id="quote-exp-bar"></div>
+                                </div>
+                                <span class="exposure-percent" id="quote-exp-percent">--</span>
                             </div>
                         </div>
                     </div>

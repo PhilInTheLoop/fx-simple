@@ -89,14 +89,14 @@ header h1 {
 }
 
 .dropdown-group select {
-    padding: 6px 10px;
-    font-size: 0.875rem;
+    padding: 8px 12px;
+    font-size: 0.85rem;
     border: 1px solid var(--border-color);
     border-radius: 6px;
     background: var(--bg-card);
     color: var(--text-primary);
     cursor: pointer;
-    min-width: 120px;
+    min-width: 200px;
 }
 
 .dropdown-group select:focus {
@@ -136,45 +136,193 @@ header h1 {
     margin-bottom: 8px;
 }
 
-/* Current Rate with Daily Change */
+/* Current Rate Display - Enhanced */
 .rate-display {
     background: var(--bg-card);
     border-radius: 8px;
     box-shadow: var(--shadow);
-    padding: 12px 16px;
+    padding: 16px 20px;
     margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 20px;
+    border-left: 4px solid var(--accent-blue);
+}
+
+.rate-main {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.rate-header-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-left: 3px solid var(--accent-blue);
+    gap: 12px;
+    margin-bottom: 4px;
 }
 
-.rate-info {
+.rate-pair {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 8px;
+}
+
+.rate-source {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    background: var(--bg-primary);
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.currency-from, .currency-to {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.currency-arrow {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.rate-value-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .rate-value {
-    font-size: 1.75rem;
+    font-size: 2rem;
     font-weight: 700;
     color: var(--text-primary);
+    line-height: 1;
 }
 
 .daily-change {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
 }
 
 .daily-change .change-value {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 500;
 }
 
-.rate-timestamp {
-    font-size: 0.75rem;
-    color: var(--text-muted);
+.rate-description {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
 }
+
+.rate-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 16px;
+    padding-left: 20px;
+    border-left: 1px solid var(--border-color);
+    align-content: center;
+}
+
+.rate-detail-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 110px;
+}
+
+.detail-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.detail-value {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    text-align: right;
+}
+
+.official-rates-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+.official-rate-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: #f0f7ff;
+    border-radius: 4px;
+    border-left: 3px solid #3b82f6;
+}
+
+.official-rate-row.fred {
+    background: #f0fdf4;
+    border-left-color: #22c55e;
+}
+
+.official-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #1e40af;
+    min-width: 35px;
+}
+
+.official-rate-row.fred .official-label {
+    color: #166534;
+}
+
+.official-rate-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1e40af;
+    flex: 1;
+}
+
+.official-rate-row.fred .official-rate-value {
+    color: #166534;
+}
+
+.preferred-badge {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    background: #3b82f6;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 8px;
+    display: none;
+}
+
+.preferred-badge.active {
+    display: inline-block;
+}
+
+.official-rate-row.fred .preferred-badge {
+    background: #22c55e;
+}
+
+.rate-diff {
+    font-size: 0.7rem;
+    margin-left: 4px;
+}
+
+.rate-diff.positive { color: var(--accent-green); }
+.rate-diff.negative { color: var(--accent-red); }
 
 /* Pair Exposure (Prominent, Collapsible) */
 .pair-exposure-card {
@@ -284,6 +432,25 @@ header h1 {
     margin-bottom: 8px;
 }
 
+.chart-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.chart-source {
+    font-size: 0.6rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 8px;
+    background: #3b82f6;
+    color: white;
+}
+
+.chart-source.fred {
+    background: #22c55e;
+}
+
 .period-select {
     padding: 4px 8px;
     font-size: 0.75rem;
@@ -344,9 +511,20 @@ header h1 {
 
 .chart-card .change-values {
     display: flex;
-    gap: 16px;
-    margin-bottom: 8px;
-    align-items: center;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.chart-card .change-label {
+    font-size: 0.7rem;
+    white-space: nowrap;
+    margin-right: 4px;
+}
+
+.chart-card .change-value {
+    font-size: 1.1rem;
+    font-weight: 600;
 }
 
 /* Info Row - Interest & Exposure side by side */
@@ -475,27 +653,53 @@ header h1 {
 .exposure-value.short { color: var(--accent-red); }
 .exposure-value.neutral { color: var(--text-secondary); }
 
+.exposure-percent-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
 .exposure-bar-container {
+    flex: 1;
     height: 6px;
     background: var(--border-color);
     border-radius: 3px;
     overflow: hidden;
+    min-width: 60px;
 }
 
 .exposure-bar {
     height: 100%;
     border-radius: 3px;
     transition: width 0.3s ease;
+    background: var(--accent-blue);
 }
 
-.exposure-bar.long { background: var(--accent-green); }
-.exposure-bar.short { background: var(--accent-red); }
+.exposure-bar.long {
+    background: var(--accent-green);
+}
 
-.exposure-note {
+.exposure-bar.short {
+    background: var(--accent-red);
+}
+
+.exposure-percent {
     font-size: 0.7rem;
     color: var(--text-muted);
-    margin-top: 8px;
-    text-align: center;
+    min-width: 65px;
+    text-align: right;
+}
+
+.exposure-percent.significant {
+    color: var(--accent-blue);
+    font-weight: 500;
+}
+
+.exposure-chf-note {
+    font-size: 0.65rem;
+    font-weight: 400;
+    color: var(--text-muted);
 }
 
 /* AI Section */
@@ -1003,13 +1207,19 @@ header h1 {
 
     .rate-display {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
+        align-items: stretch;
+        gap: 12px;
     }
 
-    .rate-info {
-        flex-direction: column;
-        gap: 8px;
+    .rate-details {
+        border-left: none;
+        border-top: 1px solid var(--border-color);
+        padding-left: 0;
+        padding-top: 12px;
+    }
+
+    .rate-value {
+        font-size: 1.6rem;
     }
 
     .daily-change {

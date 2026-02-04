@@ -2,31 +2,31 @@
 const API_BASE = 'http://localhost:8000/api';
 const FX_TRADER_API = 'https://fx-trader.thiel.ph/api';
 
-// Available currencies
+// Available currencies with symbols
 const CURRENCIES = [
-    { code: 'EUR', name: 'Euro' },
-    { code: 'USD', name: 'US Dollar' },
-    { code: 'GBP', name: 'British Pound' },
-    { code: 'JPY', name: 'Japanese Yen' },
-    { code: 'CHF', name: 'Swiss Franc' },
-    { code: 'AUD', name: 'Australian Dollar' },
-    { code: 'CAD', name: 'Canadian Dollar' },
-    { code: 'NZD', name: 'New Zealand Dollar' },
-    { code: 'SEK', name: 'Swedish Krona' },
-    { code: 'NOK', name: 'Norwegian Krone' },
-    { code: 'DKK', name: 'Danish Krone' },
-    { code: 'PLN', name: 'Polish Zloty' },
-    { code: 'CZK', name: 'Czech Koruna' },
-    { code: 'HUF', name: 'Hungarian Forint' },
-    { code: 'CNY', name: 'Chinese Yuan' },
-    { code: 'INR', name: 'Indian Rupee' },
-    { code: 'MXN', name: 'Mexican Peso' },
-    { code: 'BRL', name: 'Brazilian Real' },
-    { code: 'ZAR', name: 'South African Rand' },
-    { code: 'SGD', name: 'Singapore Dollar' },
-    { code: 'HKD', name: 'Hong Kong Dollar' },
-    { code: 'KRW', name: 'South Korean Won' },
-    { code: 'TRY', name: 'Turkish Lira' }
+    { code: 'EUR', name: 'Euro', symbol: '€' },
+    { code: 'USD', name: 'US Dollar', symbol: '$' },
+    { code: 'GBP', name: 'British Pound', symbol: '£' },
+    { code: 'JPY', name: 'Japanese Yen', symbol: '¥' },
+    { code: 'CHF', name: 'Swiss Franc', symbol: 'Fr' },
+    { code: 'AUD', name: 'Australian Dollar', symbol: 'A$' },
+    { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$' },
+    { code: 'NZD', name: 'New Zealand Dollar', symbol: 'NZ$' },
+    { code: 'SEK', name: 'Swedish Krona', symbol: 'kr' },
+    { code: 'NOK', name: 'Norwegian Krone', symbol: 'kr' },
+    { code: 'DKK', name: 'Danish Krone', symbol: 'kr' },
+    { code: 'PLN', name: 'Polish Zloty', symbol: 'zł' },
+    { code: 'CZK', name: 'Czech Koruna', symbol: 'Kč' },
+    { code: 'HUF', name: 'Hungarian Forint', symbol: 'Ft' },
+    { code: 'CNY', name: 'Chinese Yuan', symbol: '¥' },
+    { code: 'INR', name: 'Indian Rupee', symbol: '₹' },
+    { code: 'MXN', name: 'Mexican Peso', symbol: 'Mex$' },
+    { code: 'BRL', name: 'Brazilian Real', symbol: 'R$' },
+    { code: 'ZAR', name: 'South African Rand', symbol: 'R' },
+    { code: 'SGD', name: 'Singapore Dollar', symbol: 'S$' },
+    { code: 'HKD', name: 'Hong Kong Dollar', symbol: 'HK$' },
+    { code: 'KRW', name: 'South Korean Won', symbol: '₩' },
+    { code: 'TRY', name: 'Turkish Lira', symbol: '₺' }
 ];
 
 // Chart instances
@@ -55,8 +55,9 @@ function initializeCurrencyDropdowns() {
     const quoteSelect = document.getElementById('quote-currency');
 
     CURRENCIES.forEach(currency => {
-        const option1 = new Option(`${currency.code}`, currency.code);
-        const option2 = new Option(`${currency.code}`, currency.code);
+        const displayText = `${currency.code} - ${currency.symbol} ${currency.name}`;
+        const option1 = new Option(displayText, currency.code);
+        const option2 = new Option(displayText, currency.code);
         baseSelect.add(option1);
         quoteSelect.add(option2);
     });
@@ -182,7 +183,7 @@ async function onPairChange() {
             fetchInterestRates(base, quote)
         ]);
 
-        updateCurrentRate(rateData, historicalData);
+        updateCurrentRate(rateData, historicalData, base, quote);
         updatePairExposure(base, quote);
         updateHistoricalChart(historicalData, base, quote);
         updateInterestRates(interestData, base, quote);
@@ -235,17 +236,50 @@ async function fetchAIAnalysis(base, quote) {
 }
 
 // UI Updates
-function updateCurrentRate(data, historicalData) {
-    document.getElementById('current-rate').textContent = data.rate.toFixed(4);
+function updateCurrentRate(data, historicalData, base, quote) {
+    // Determine preferred rate source: USD base = FRED preferred, others = ECB preferred
+    const isUsdBase = base === 'USD';
+
+    // Use preferred rate as the main displayed rate
+    let displayRate = data.rate;
+    let displaySource = data.source || 'Frankfurter (ECB)';
+
+    if (isUsdBase && data.fred_rate) {
+        displayRate = data.fred_rate;
+        displaySource = 'FRED (Federal Reserve)';
+    } else if (!isUsdBase && data.ecb_rate) {
+        displayRate = data.ecb_rate;
+        displaySource = 'ECB (European Central Bank)';
+    }
+
+    // Currency pair display
+    document.getElementById('currency-from').textContent = base;
+    document.getElementById('currency-to').textContent = quote;
+
+    // Data source display
+    const sourceEl = document.getElementById('rate-source');
+    sourceEl.textContent = `via ${displaySource}`;
+
+    // Main rate (using preferred source)
+    document.getElementById('current-rate').textContent = displayRate.toFixed(4);
+
+    // Rate description (e.g., "1 EUR = 1.0825 USD")
+    document.getElementById('rate-description').textContent = `1 ${base} = ${displayRate.toFixed(4)} ${quote}`;
+
+    // Timestamp
     const time = new Date(data.timestamp);
     document.getElementById('rate-timestamp').textContent = time.toLocaleTimeString();
 
-    // Daily change (from last few data points)
+    // Inverse rate
+    const inverse = 1 / displayRate;
+    document.getElementById('inverse-rate').textContent = inverse.toFixed(4);
+
+    // Daily change (using historical data which now comes from preferred source)
     const dailyAbsolute = document.getElementById('daily-absolute');
     const dailyPercent = document.getElementById('daily-percent');
 
     if (historicalData && historicalData.daily) {
-        const change = data.rate - historicalData.daily.open;
+        const change = displayRate - historicalData.daily.open;
         const percentChange = (change / historicalData.daily.open) * 100;
 
         dailyAbsolute.textContent = formatChange(change);
@@ -253,6 +287,42 @@ function updateCurrentRate(data, historicalData) {
 
         dailyPercent.textContent = formatPercent(percentChange);
         dailyPercent.className = `change-value ${percentChange >= 0 ? 'positive' : 'negative'}`;
+    }
+
+    // ECB Rate (official European Central Bank rate)
+    const ecbRow = document.getElementById('ecb-row');
+    const ecbRateEl = document.getElementById('ecb-rate');
+    const ecbPreferred = document.getElementById('ecb-preferred');
+
+    if (data.ecb_rate) {
+        ecbRow.style.display = 'flex';
+        const ecbRate = data.ecb_rate;
+
+        // Show rate (no diff needed since we show the actual rate)
+        ecbRateEl.textContent = ecbRate.toFixed(4);
+
+        // Show preferred badge for non-USD base currencies
+        ecbPreferred.className = `preferred-badge ${!isUsdBase ? 'active' : ''}`;
+    } else {
+        ecbRow.style.display = 'none';
+    }
+
+    // FRED Rate (Federal Reserve Economic Data - St. Louis Fed)
+    const fredRow = document.getElementById('fred-row');
+    const fredRateEl = document.getElementById('fred-rate');
+    const fredPreferred = document.getElementById('fred-preferred');
+
+    if (data.fred_rate) {
+        fredRow.style.display = 'flex';
+        const fredRate = data.fred_rate;
+
+        // Show rate (no diff needed since we show the actual rate)
+        fredRateEl.textContent = fredRate.toFixed(4);
+
+        // Show preferred badge for USD base currency
+        fredPreferred.className = `preferred-badge ${isUsdBase ? 'active' : ''}`;
+    } else {
+        fredRow.style.display = 'none';
     }
 }
 
@@ -317,6 +387,12 @@ function updateHistoricalChart(historicalData, base, quote) {
     const periodAbsolute = document.getElementById('period-absolute');
     const periodPercent = document.getElementById('period-percent');
     const periodLabel = document.getElementById('period-label');
+    const chartSource = document.getElementById('chart-source');
+
+    // Update chart source indicator
+    const source = historicalData.source || 'ECB';
+    chartSource.textContent = source;
+    chartSource.className = `chart-source ${source === 'FRED' ? 'fred' : ''}`;
 
     // Update period label
     const periodNames = { 30: '1M', 90: '3M', 365: '1Y' };
@@ -382,45 +458,72 @@ function updateExposure(base, quote) {
     const baseExp = getExposureForCurrency(base);
     const quoteExp = getExposureForCurrency(quote);
 
+    // Calculate total exposure in CHF (sum of absolute CHF values)
+    let totalExposureCHF = 0;
+    if (exposureCache && exposureCache.length > 0) {
+        totalExposureCHF = exposureCache.reduce((sum, e) => sum + Math.abs(e.net_chf || 0), 0);
+    }
+
     // Update base currency exposure
     document.getElementById('base-exp-name').textContent = base;
     const baseExpValue = document.getElementById('base-exposure');
+    const baseExpPercent = document.getElementById('base-exp-percent');
     const baseExpBar = document.getElementById('base-exp-bar');
 
     if (baseExp) {
         const net = baseExp.net;
+        const netCHF = baseExp.net_chf || 0;
         baseExpValue.textContent = formatExposure(net);
         baseExpValue.className = `exposure-value ${net > 0 ? 'long' : net < 0 ? 'short' : 'neutral'}`;
 
-        // Calculate bar width (normalize to max exposure for visual)
-        const maxExp = Math.max(...exposureCache.map(e => Math.abs(e.net)));
-        const barWidth = maxExp > 0 ? (Math.abs(net) / maxExp) * 100 : 0;
-        baseExpBar.style.width = `${barWidth}%`;
-        baseExpBar.className = `exposure-bar ${net > 0 ? 'long' : 'short'}`;
+        // Calculate percentage of total exposure (using CHF values)
+        if (totalExposureCHF > 0) {
+            const percent = (Math.abs(netCHF) / totalExposureCHF) * 100;
+            baseExpPercent.textContent = `${percent.toFixed(1)}%`;
+            baseExpPercent.className = `exposure-percent ${percent >= 20 ? 'significant' : ''}`;
+            baseExpBar.style.width = `${percent}%`;
+            baseExpBar.className = `exposure-bar ${net > 0 ? 'long' : net < 0 ? 'short' : ''}`;
+        } else {
+            baseExpPercent.textContent = '';
+            baseExpBar.style.width = '0%';
+        }
     } else {
         baseExpValue.textContent = 'No position';
         baseExpValue.className = 'exposure-value neutral';
+        baseExpPercent.textContent = '';
         baseExpBar.style.width = '0%';
+        baseExpBar.className = 'exposure-bar';
     }
 
     // Update quote currency exposure
     document.getElementById('quote-exp-name').textContent = quote;
     const quoteExpValue = document.getElementById('quote-exposure');
+    const quoteExpPercent = document.getElementById('quote-exp-percent');
     const quoteExpBar = document.getElementById('quote-exp-bar');
 
     if (quoteExp) {
         const net = quoteExp.net;
+        const netCHF = quoteExp.net_chf || 0;
         quoteExpValue.textContent = formatExposure(net);
         quoteExpValue.className = `exposure-value ${net > 0 ? 'long' : net < 0 ? 'short' : 'neutral'}`;
 
-        const maxExp = Math.max(...exposureCache.map(e => Math.abs(e.net)));
-        const barWidth = maxExp > 0 ? (Math.abs(net) / maxExp) * 100 : 0;
-        quoteExpBar.style.width = `${barWidth}%`;
-        quoteExpBar.className = `exposure-bar ${net > 0 ? 'long' : 'short'}`;
+        // Calculate percentage of total exposure (using CHF values)
+        if (totalExposureCHF > 0) {
+            const percent = (Math.abs(netCHF) / totalExposureCHF) * 100;
+            quoteExpPercent.textContent = `${percent.toFixed(1)}%`;
+            quoteExpPercent.className = `exposure-percent ${percent >= 20 ? 'significant' : ''}`;
+            quoteExpBar.style.width = `${percent}%`;
+            quoteExpBar.className = `exposure-bar ${net > 0 ? 'long' : net < 0 ? 'short' : ''}`;
+        } else {
+            quoteExpPercent.textContent = '';
+            quoteExpBar.style.width = '0%';
+        }
     } else {
         quoteExpValue.textContent = 'No position';
         quoteExpValue.className = 'exposure-value neutral';
+        quoteExpPercent.textContent = '';
         quoteExpBar.style.width = '0%';
+        quoteExpBar.className = 'exposure-bar';
     }
 }
 
@@ -810,17 +913,10 @@ function updatePromptPreview() {
     if (settings.sources.economic) sourcesText.push('Economic conditions');
     if (settings.sources.technical) sourcesText.push('Technical factors');
 
-    let preview = `You are a professional FX analyst. Analyze the {PAIR} currency pair.
+    let preview = `You are a financial research assistant. Summarize the latest research and analyst opinions on the {PAIR} currency pair.
 
-Current Market Data:
-- Currency Pair: {PAIR}
-- Current Rate: {RATE}
-- Base Interest Rate: {BASE_RATE}%
-- Quote Interest Rate: {QUOTE_RATE}%
-- Interest Rate Differential: {DIFFERENTIAL}%
-
-Analysis Style: ${styleText}
-Analysis Depth: ${settings.depth}
+Summary Style: ${styleText}
+Detail Level: ${settings.depth}
 `;
 
     if (sourcesText.length > 0) {
@@ -836,7 +932,7 @@ Analysis Depth: ${settings.depth}
     }
 
     if (settings.webSearch) {
-        preview += `\n\n[Web research will be performed to gather analyst forecasts and market sentiment]`;
+        preview += `\n\n[Web research will be performed to find recent analyst publications, bank forecasts, and financial news]`;
     }
 
     document.getElementById('prompt-preview-text').textContent = preview;
