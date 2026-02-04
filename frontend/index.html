@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FX Simple - Currency Monitor</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FX Monitor</h1>
+            <button class="settings-btn" onclick="openSettings()" title="Settings">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </button>
+        </header>
+
+        <!-- Currency Pair Selection -->
+        <section class="pair-selector">
+            <div class="dropdown-group">
+                <label for="base-currency">From</label>
+                <select id="base-currency">
+                    <option value="">Select</option>
+                </select>
+            </div>
+            <div class="swap-icon" id="swap-btn" title="Swap currencies">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 16l-4-4m0 0l4-4m-4 4h18M17 8l4 4m0 0l-4 4m4-4H3"/>
+                </svg>
+            </div>
+            <div class="dropdown-group">
+                <label for="quote-currency">To</label>
+                <select id="quote-currency">
+                    <option value="">Select</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <main id="main-content" class="hidden">
+            <!-- Current Rate with Daily Change -->
+            <section class="rate-display">
+                <div class="rate-info">
+                    <span class="rate-value" id="current-rate">--</span>
+                    <div class="daily-change">
+                        <span class="change-value" id="daily-absolute">--</span>
+                        <span class="change-value" id="daily-percent">--</span>
+                    </div>
+                </div>
+                <span class="rate-timestamp" id="rate-timestamp">--</span>
+            </section>
+
+            <!-- Pair Exposure (prominent, collapsible) -->
+            <section class="pair-exposure-card" id="pair-exposure-card" onclick="togglePairDetails()">
+                <div class="pair-exposure-header">
+                    <span class="pair-exposure-label">Your Position in <span id="pair-label">--/--</span></span>
+                    <div class="pair-exposure-right">
+                        <span class="pair-exposure-value" id="pair-exposure-value">No position</span>
+                        <span class="expand-arrow" id="pair-expand-arrow"></span>
+                    </div>
+                </div>
+                <div class="pair-exposure-details hidden" id="pair-exposure-details"></div>
+            </section>
+
+            <!-- Historical Chart -->
+            <section class="chart-card">
+                <div class="card-header">
+                    <span>Historical</span>
+                    <select id="chart-period" class="period-select">
+                        <option value="30">1 Month</option>
+                        <option value="90" selected>3 Months</option>
+                        <option value="365">1 Year</option>
+                    </select>
+                </div>
+                <div class="change-values">
+                    <div class="change-item">
+                        <span class="change-label" id="period-label">3M Change</span>
+                        <span class="change-value" id="period-absolute">--</span>
+                    </div>
+                    <div class="change-item">
+                        <span class="change-value" id="period-percent">--</span>
+                    </div>
+                </div>
+                <div class="chart-container large">
+                    <canvas id="history-chart"></canvas>
+                </div>
+                <div class="chart-legend" id="trade-legend" style="display:none;">
+                    <div class="legend-item">
+                        <span class="legend-dot buy"></span>
+                        <span>Buy</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot sell"></span>
+                        <span>Sell</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Interest Rates & Currency Exposure Row -->
+            <section class="info-row">
+                <!-- Interest Rates -->
+                <div class="interest-card">
+                    <div class="card-header">Central Bank Rates</div>
+                    <div class="interest-row">
+                        <div class="interest-item">
+                            <div class="interest-currency" id="base-name">--</div>
+                            <div class="interest-value-row">
+                                <span class="interest-value" id="base-interest">--</span>
+                                <span class="rate-direction" id="base-direction"></span>
+                            </div>
+                            <div class="interest-meta" id="base-meta">--</div>
+                        </div>
+                        <div class="interest-diff">
+                            <div class="interest-currency">Diff</div>
+                            <div class="interest-value" id="rate-differential">--</div>
+                        </div>
+                        <div class="interest-item">
+                            <div class="interest-currency" id="quote-name">--</div>
+                            <div class="interest-value-row">
+                                <span class="interest-value" id="quote-interest">--</span>
+                                <span class="rate-direction" id="quote-direction"></span>
+                            </div>
+                            <div class="interest-meta" id="quote-meta">--</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Currency Exposure -->
+                <div class="exposure-card">
+                    <div class="card-header">Total Currency Exposure</div>
+                    <div class="exposure-row">
+                        <div class="exposure-item">
+                            <div class="exposure-currency" id="base-exp-name">--</div>
+                            <div class="exposure-value" id="base-exposure">--</div>
+                            <div class="exposure-bar-container">
+                                <div class="exposure-bar" id="base-exp-bar"></div>
+                            </div>
+                        </div>
+                        <div class="exposure-item">
+                            <div class="exposure-currency" id="quote-exp-name">--</div>
+                            <div class="exposure-value" id="quote-exposure">--</div>
+                            <div class="exposure-bar-container">
+                                <div class="exposure-bar" id="quote-exp-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI Analysis -->
+            <section class="ai-card">
+                <div class="card-header">
+                    <span>AI Analysis</span>
+                    <span class="ai-status" id="ai-status"></span>
+                </div>
+
+                <!-- Initial state: Request button -->
+                <div class="ai-request" id="ai-request">
+                    <p class="ai-request-text">Get AI-powered analysis for this currency pair based on current market data, interest rate differentials, and analyst sentiment.</p>
+                    <button class="request-ai-btn" id="request-ai-btn" onclick="requestAIAnalysis()">
+                        <span class="btn-icon">🤖</span>
+                        Request AI Analysis
+                    </button>
+                </div>
+
+                <!-- Analysis results (hidden initially) -->
+                <div class="ai-results hidden" id="ai-results">
+                    <div class="ai-blocks">
+                        <!-- Short Term -->
+                        <div class="ai-block" id="short-term-block">
+                            <div class="ai-header" onclick="toggleDetails('short-term')">
+                                <div class="ai-title-row">
+                                    <span class="timeframe">Short Term (1-7d)</span>
+                                    <span class="trend-indicator" id="short-term-trend">--</span>
+                                </div>
+                                <span class="ai-summary" id="short-term-summary">Loading...</span>
+                                <span class="expand-icon">+</span>
+                            </div>
+                            <div class="ai-details hidden" id="short-term-details">
+                                <p id="short-term-full"></p>
+                                <div class="sources" id="short-term-sources"></div>
+                            </div>
+                        </div>
+
+                        <!-- Long Term -->
+                        <div class="ai-block" id="long-term-block">
+                            <div class="ai-header" onclick="toggleDetails('long-term')">
+                                <div class="ai-title-row">
+                                    <span class="timeframe">Mid/Long Term (1-3m)</span>
+                                    <span class="trend-indicator" id="long-term-trend">--</span>
+                                </div>
+                                <span class="ai-summary" id="long-term-summary">Loading...</span>
+                                <span class="expand-icon">+</span>
+                            </div>
+                            <div class="ai-details hidden" id="long-term-details">
+                                <p id="long-term-full"></p>
+                                <div class="sources" id="long-term-sources"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="refresh-ai-btn" id="refresh-ai" onclick="requestAIAnalysis()">
+                        Refresh Analysis
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Loading -->
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <span>Loading...</span>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay hidden" id="settings-modal" onclick="closeSettingsOnOverlay(event)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="modal-close" onclick="closeSettings()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3>Analysis Configuration</h3>
+
+                    <!-- Analysis Style -->
+                    <div class="setting-group">
+                        <label for="analysis-style">Analysis Style</label>
+                        <select id="analysis-style">
+                            <option value="balanced">Balanced - Technical & Fundamental</option>
+                            <option value="technical">Technical Focus - Charts & Levels</option>
+                            <option value="fundamental">Fundamental Focus - Economics & Policy</option>
+                            <option value="risk">Risk-Focused - Volatility & Events</option>
+                            <option value="brief">Brief & Concise</option>
+                        </select>
+                        <p class="setting-description" id="style-description">Considers both technical and fundamental factors equally.</p>
+                    </div>
+
+                    <!-- Analysis Depth -->
+                    <div class="setting-group">
+                        <label for="analysis-depth">Analysis Depth</label>
+                        <select id="analysis-depth">
+                            <option value="standard">Standard - Key insights</option>
+                            <option value="detailed">Detailed - Comprehensive analysis</option>
+                            <option value="brief">Brief - Quick summary only</option>
+                        </select>
+                    </div>
+
+                    <!-- Data Sources -->
+                    <div class="setting-group">
+                        <label>Data Sources</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="source-interest-rates" checked>
+                                <span>Interest Rate Differentials</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="source-central-banks" checked>
+                                <span>Central Bank Policies</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="source-economic" checked>
+                                <span>Economic Conditions</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="source-technical" checked>
+                                <span>Technical Factors</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Web Research Toggle -->
+                    <div class="setting-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="use-web-search">
+                            <span class="toggle-text">Enable Live Web Research</span>
+                        </label>
+                        <p class="setting-hint">
+                            Searches for real-time analyst forecasts from major banks (Goldman Sachs, JP Morgan, etc.),
+                            financial news (Reuters, Bloomberg), and technical analysis. Takes ~30s longer.
+                        </p>
+                    </div>
+
+                    <hr class="settings-divider">
+
+                    <h3>Custom Prompt Additions</h3>
+                    <p class="settings-hint">Add specific instructions for the AI analysis. These are appended to the base prompt.</p>
+
+                    <div class="setting-group">
+                        <label for="short-term-prompt">Short-Term Focus (optional)</label>
+                        <textarea id="short-term-prompt" rows="2" placeholder="E.g., Pay special attention to upcoming NFP data..."></textarea>
+                    </div>
+
+                    <div class="setting-group">
+                        <label for="long-term-prompt">Long-Term Focus (optional)</label>
+                        <textarea id="long-term-prompt" rows="2" placeholder="E.g., Consider impact of trade tensions..."></textarea>
+                    </div>
+
+                    <hr class="settings-divider">
+
+                    <!-- Prompt Preview -->
+                    <div class="setting-group">
+                        <label>
+                            Prompt Preview
+                            <button class="btn-small" onclick="togglePromptPreview()">Show/Hide</button>
+                        </label>
+                        <div class="prompt-preview hidden" id="prompt-preview">
+                            <pre id="prompt-preview-text"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="resetSettings()">Reset to Default</button>
+                <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
